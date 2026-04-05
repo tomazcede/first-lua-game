@@ -12,10 +12,12 @@ function love.load()
     player.speed = 3
     player.stamina_run_threshold = 200
     player.max_stamina = 500
+    player.max_hp = 500
     player.walk_speed = 3
     player.run_speed = 6
 
     player.stamina = player.max_stamina
+    player.hp = player.max_hp
 
     player.walk_sheet = love.graphics.newImage("sprites/Fox/Fox_walk.png")
     player.idle_sheet = love.graphics.newImage("sprites/Fox/Fox_Idle.png")
@@ -106,7 +108,7 @@ function handleMovement(dt)
         end
     elseif player.speed == player.run_speed and player.stamina > 0 then
         player.stamina = player.stamina - 2
-    elseif player.stamina > player.stamina_run_threshold and player.stamina < player.max_stamina then
+    elseif player.stamina >= player.stamina_run_threshold and player.stamina < player.max_stamina then
         player.stamina = player.stamina + 2
     end
 
@@ -128,10 +130,30 @@ end
 function love.draw()
     love.graphics.draw(background, 0, 0)
     player.anim:draw(player.sheet, player.x, player.y, nil, 4)
-    love.graphics.rectangle("fill", 0, 0, player.stamina, 10)
-    love.graphics.setColor(255,0,0)
-    love.graphics.line(player.stamina_run_threshold, 0, player.stamina_run_threshold, 10)
-    love.graphics.setColor(255,255,255)
+
+    -- top bar
+    love.graphics.setColor(40/255, 40/255, 40/255)
+    love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), 50)
+
+    -- hp bar
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print("HP:", 5, 5)
+    love.graphics.setColor(80/255, 30/255, 30/255)
+    love.graphics.rectangle("fill", 30, 2.5, player.max_hp + 10, 20)
+    love.graphics.setColor(220/255, 60/255, 60/255)
+    love.graphics.rectangle("fill", 35, 7.5, player.hp, 10)
+
+    -- stamina bar
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print("ST:", 5, 30)
+    love.graphics.setColor(25/255, 100/255, 60/255)
+    love.graphics.rectangle("fill", 30, 27.5, player.max_stamina + 10, 20)
+    love.graphics.setColor(80/255, 220/255, 120/255)
+    love.graphics.rectangle("fill", 35, 32.5, player.stamina, 10)
+    love.graphics.setColor(20/255, 20/255, 20/255)
+    love.graphics.line(player.stamina_run_threshold + 35, 32.5, player.stamina_run_threshold + 35, 42.5)
+
+    love.graphics.setColor(1, 1, 1)
 end
 
 local love_errorhandler = love.errorhandler
