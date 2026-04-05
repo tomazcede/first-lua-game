@@ -10,11 +10,12 @@ function love.load()
     player.x = 0
     player.y = 0
     player.speed = 3
-    player.stamina = 500
     player.stamina_run_threshold = 200
-
+    player.max_stamina = 500
     player.walk_speed = 3
     player.run_speed = 6
+
+    player.stamina = player.max_stamina
 
     player.walk_sheet = love.graphics.newImage("sprites/Fox/Fox_walk.png")
     player.idle_sheet = love.graphics.newImage("sprites/Fox/Fox_Idle.png")
@@ -90,7 +91,7 @@ function handleMovement(dt)
 
     if player.x == playerX and player.y == playerY then
         player.sheet = player.idle_sheet
-        if(player.stamina < 500) then
+        if(player.stamina < player.max_stamina) then
             player.stamina = player.stamina + 4
         end
 
@@ -105,12 +106,12 @@ function handleMovement(dt)
         end
     elseif player.speed == player.run_speed and player.stamina > 0 then
         player.stamina = player.stamina - 2
-    elseif player.stamina > player.stamina_run_threshold and player.stamina < 500 then
+    elseif player.stamina > player.stamina_run_threshold and player.stamina < player.max_stamina then
         player.stamina = player.stamina + 2
     end
 
-    if(player.stamina > 500) then
-        player.stamina = 500
+    if(player.stamina > player.max_stamina) then
+        player.stamina = player.max_stamina
     end
 
     if(player.stamina < 0) then
