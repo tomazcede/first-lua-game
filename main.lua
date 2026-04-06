@@ -10,29 +10,50 @@ function drawUi()
         maxValue = player.max_stamina
     end
 
+    local bars = {
+        {
+            label = "HP:", 
+            maxVal = player.max_hp, 
+            val = player.hp, 
+            x = 7.5, 
+            bgColor = {
+                r = 80 / 255,
+                g = 30 / 255,
+                b = 30 / 255
+            }, 
+            color = {
+                r = 220 / 255,
+                g = 60 / 255,
+                b = 60 / 255
+            }, 
+            line = false
+        },
+        {
+            label = "ST:", 
+            maxVal = player.max_stamina, 
+            val = player.stamina, 
+            x = 40, 
+            bgColor = {
+                r = 25 / 255,
+                g = 100 / 255,
+                b = 60 / 255
+            }, 
+            color = {
+                r = 80 / 255,
+                g = 220 / 255,
+                b = 120 / 255
+            }, 
+            line = player.stamina_run_threshold
+        }
+    }
+
     love.graphics.setColor(40/255, 40/255, 40/255)
-    love.graphics.rectangle("fill", 0, 0, maxValue + 50, 70)
+    love.graphics.rectangle("fill", 0, 0, maxValue + 50, # (bars) * 35)
 
-    drawValueBar("HP:", player.max_hp, player.hp, 7.5, {
-        r = 80 / 255,
-        g = 30 / 255,
-        b = 30 / 255
-    }, {
-        r = 220 / 255,
-        g = 60 / 255,
-        b = 60 / 255
-    }, false)
-
-    drawValueBar("ST:", player.max_stamina, player.stamina, 40, {
-        r = 25 / 255,
-        g = 100 / 255,
-        b = 60 / 255
-    }, {
-        r = 80 / 255,
-        g = 220 / 255,
-        b = 120 / 255
-    }, player.stamina_run_threshold)
-
+    for key, value in pairs(bars) do
+        drawValueBar(value.label, value.maxVal, value.val, value.x, value.bgColor, value.color, value.line)
+    end
+    
     love.graphics.setColor(1, 1, 1)
 end
 
