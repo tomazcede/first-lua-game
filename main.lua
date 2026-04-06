@@ -1,136 +1,10 @@
+player = require "objects.player.player"
+
 if arg[2] == "debug" then
     require("lldebugger").start()
 end
 
-function love.load()
-    anim8 = require "libraries/anim8"
-    love.graphics.setDefaultFilter("nearest", "nearest")
-
-    player = {}
-    player.x = 0
-    player.y = 0
-    player.speed = 3
-    player.stamina_run_threshold = 200
-    player.max_stamina = 500
-    player.max_hp = 500
-    player.walk_speed = 3
-    player.run_speed = 6
-
-    player.stamina = player.max_stamina
-    player.hp = player.max_hp
-
-    player.walk_sheet = love.graphics.newImage("sprites/Fox/Fox_walk.png")
-    player.idle_sheet = love.graphics.newImage("sprites/Fox/Fox_Idle.png")
-    player.run_sheet = love.graphics.newImage("sprites/Fox/Fox_Run.png")
-    player.shadow_sheet = love.graphics.newImage("sprites/Fox/Fox_Shadow.png")
-
-    player.six_grid = anim8.newGrid(32, 32, player.walk_sheet:getWidth(), player.walk_sheet:getHeight() )
-    player.four_grid = anim8.newGrid(32, 32, player.idle_sheet:getWidth(), player.idle_sheet:getHeight() )
-    player.shadow_grid = anim8.newGrid(32, 16, player.idle_sheet:getWidth(), player.idle_sheet:getHeight() )
-
-    player.animations = {}
-    player.animations.move_down = anim8.newAnimation( player.six_grid("1-6", 1), 0.2 )
-    player.animations.move_up = anim8.newAnimation( player.six_grid("1-6", 2), 0.2 )
-    player.animations.move_left = anim8.newAnimation( player.six_grid("1-6", 3), 0.2 )
-    player.animations.move_right = anim8.newAnimation( player.six_grid("1-6", 4), 0.2 )
-
-    player.animations.idle_down = anim8.newAnimation( player.four_grid("1-4", 1), 0.2 )
-    player.animations.idle_up = anim8.newAnimation( player.four_grid("1-4", 2), 0.2 )
-    player.animations.idle_left = anim8.newAnimation( player.four_grid("1-4", 3), 0.2 )
-    player.animations.idle_right = anim8.newAnimation( player.four_grid("1-4", 4), 0.2 )
-
-    player.anim = player.animations.idle_down
-    player.direction = "down"
-    player.sheet = player.idle_sheet
-
-    background = love.graphics.newImage("sprites/background.png")
-end
-
-function handleMovement(dt) 
-    local playerX = player.x
-    local playerY = player.y
-
-    if (love.keyboard.isDown("rshift") or love.keyboard.isDown("lshift")) and player.stamina > 0 then
-        player.speed = player.run_speed
-        player.sheet = player.run_sheet
-    else
-        player.speed = player.walk_speed
-        player.sheet = player.walk_sheet
-    end
-
-    if love.keyboard.isDown("d") then
-        player.x = player.x + player.speed
-        if player.speed == player.run_speed then
-            player.anim = player.animations.move_left
-        else
-            player.anim = player.animations.move_right
-        end
-        player.direction = "right"
-    end
-
-    if love.keyboard.isDown("a") then
-        player.x = player.x - player.speed
-        if player.speed == player.run_speed then
-            player.anim = player.animations.move_right
-        else
-            player.anim = player.animations.move_left
-        end
-       
-        player.direction = "left"
-    end
-
-    if love.keyboard.isDown("s") then
-        player.y = player.y + player.speed
-        player.anim = player.animations.move_down
-        player.direction = "down"
-    end
-
-    if love.keyboard.isDown("w") then
-        player.y = player.y - player.speed
-        player.anim = player.animations.move_up
-        player.direction = "up"
-    end
-
-    if player.x == playerX and player.y == playerY then
-        player.sheet = player.idle_sheet
-        if(player.stamina < player.max_stamina) then
-            player.stamina = player.stamina + 4
-        end
-
-        if player.direction == "down" then
-            player.anim = player.animations.idle_down
-        elseif player.direction == "up" then
-            player.anim = player.animations.idle_up
-        elseif player.direction == "left" then
-            player.anim = player.animations.idle_left
-        elseif player.direction == "right" then
-            player.anim = player.animations.idle_right
-        end
-    elseif player.speed == player.run_speed and player.stamina > 0 then
-        player.stamina = player.stamina - 2
-    elseif player.stamina >= player.stamina_run_threshold and player.stamina < player.max_stamina then
-        player.stamina = player.stamina + 2
-    end
-
-    if(player.stamina > player.max_stamina) then
-        player.stamina = player.max_stamina
-    end
-
-    if(player.stamina < 0) then
-        player.stamina = 0
-    end
-end
-
-function love.update(dt)
-    handleMovement(dt)
-
-    player.anim:update(dt)
-end
-
-function love.draw()
-    love.graphics.draw(background, 0, 0)
-    player.anim:draw(player.sheet, player.x, player.y, nil, 4)
-
+function drawUi()
     -- top bar
     love.graphics.setColor(40/255, 40/255, 40/255)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), 50)
@@ -154,6 +28,84 @@ function love.draw()
     love.graphics.line(player.stamina_run_threshold + 35, 32.5, player.stamina_run_threshold + 35, 42.5)
 
     love.graphics.setColor(1, 1, 1)
+end
+
+function handleCamera()
+    cam:lookAt(player.x, player.y)
+
+    local w = love.graphics.getWidth()
+    local mapW = gameMap.width * gameMap.tilewidth
+    local h = love.graphics.getHeight()
+    local mapH = gameMap.height * gameMap.tileheight
+
+    if cam.x < w/2 then
+        cam.x = w/2
+    end
+
+    if cam.y < h/2 then
+        cam.y = h/2
+    end
+
+    if cam.x > (mapW - w/2) then
+        cam.x = (mapW - w/2)
+    end
+
+    if cam.y > (mapH - h/2) then
+        cam.y = (mapH - h/2)
+    end
+end
+
+function love.load()
+    camera = require "libraries.camera"
+    cam = camera()
+
+    anim8 = require "libraries/anim8"
+    sti = require "libraries/sti"
+    wf = require "libraries.windfield"
+    world = wf.newWorld(0, 0)
+    gameMap = sti("maps/testMap.lua")
+
+    love.graphics.setDefaultFilter("nearest", "nearest")
+
+    player.init(world)
+    
+    walls = {}
+    if gameMap.layers["walls"] then
+        for i, obj in pairs(gameMap.layers["walls"].objects) do
+            local wall = world:newRectangleCollider(obj.x, obj.y, obj.width, obj.height)
+            wall:setType("static")
+            table.insert(walls, wall)
+        end
+    end
+end
+
+function love.update(dt)
+    player:handleMovement()
+    player:handleStamina()
+
+    world:update(dt)
+    player.x = player.collider:getX()
+    player.y = player.collider:getY()
+
+    if player.y < 100 then
+        player.y = 100
+        player.collider:setPosition(player.collider:getX(), 100)
+    end
+
+    player.anim:update(dt)
+    handleCamera()
+end
+
+function love.draw()
+    cam:attach()
+        gameMap:drawLayer(gameMap.layers["ground"])
+        gameMap:drawLayer(gameMap.layers["trees"])
+
+        player.anim:draw(player.sheet, player.x, player.y, nil, 6, nil, 16, 16)
+        --world:draw()
+    cam:detach()
+
+    drawUi()
 end
 
 local love_errorhandler = love.errorhandler
