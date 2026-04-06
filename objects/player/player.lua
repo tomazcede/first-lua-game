@@ -1,6 +1,9 @@
 anim8 = require "libraries.anim8"
 camera = require "libraries.camera"
-    
+
+
+local States = {IDLE = "idle", RUNNING = "running", WALKING = "walking"}
+local Directions = {UP = "up", DOWN = "down", LEFT = "left", RIGHT = "right"}
 local player = {}
 
 player.cam = camera()
@@ -9,45 +12,45 @@ love.graphics.setDefaultFilter("nearest", "nearest")
 player.max_stamina = 300
 player.max_hp = 300
 player.speeds = {}
-player.speeds["running"] = 6
-player.speeds["walking"] = 3
-player.speeds["idle"] = 3
+player.speeds[States.RUNNING] = 6
+player.speeds[States.WALKING] = 3
+player.speeds[States.IDLE] = 3
 player.vx = 0
 player.vy = 0
 
-player.state = "idle"
-player.direction = "down"
-player.lastDirection = "down"
-player.speed = player.speeds["idle"]
+player.state = States.IDLE
+player.direction = Directions.DOWN
+player.lastDirection = Directions.DOWN
+player.speed = player.speeds[States.IDLE]
 
 player.stamina = player.max_stamina
 player.stamina_run_threshold = (player.max_stamina * 2) / 7
 player.hp = player.max_hp
 
 player.sheets = {}
-player.sheets["running"] = love.graphics.newImage("objects/player/sprites/Fox/Fox_Run.png")
-player.sheets["walking"] = love.graphics.newImage("objects/player/sprites/Fox/Fox_walk.png")
-player.sheets["idle"] = love.graphics.newImage("objects/player/sprites/Fox/Fox_Idle.png")
+player.sheets[States.RUNNING] = love.graphics.newImage("objects/player/sprites/Fox/Fox_Run.png")
+player.sheets[States.WALKING] = love.graphics.newImage("objects/player/sprites/Fox/Fox_walk.png")
+player.sheets[States.IDLE] = love.graphics.newImage("objects/player/sprites/Fox/Fox_Idle.png")
 
-player.sheet = player.sheets["idle"]
+player.sheet = player.sheets[States.IDLE]
 
-player.six_grid = anim8.newGrid(32, 32, player.sheets["walking"]:getWidth(), player.sheets["walking"]:getHeight() )
-player.four_grid = anim8.newGrid(32, 32, player.sheets["idle"]:getWidth(), player.sheets["idle"]:getHeight() )
+player.six_grid = anim8.newGrid(32, 32, player.sheets[States.WALKING]:getWidth(), player.sheets[States.WALKING]:getHeight() )
+player.four_grid = anim8.newGrid(32, 32, player.sheets[States.IDLE]:getWidth(), player.sheets[States.IDLE]:getHeight() )
 
 player.animations = {}
 player.animations.move = {}
-player.animations.move["down"] = anim8.newAnimation( player.six_grid("1-6", 1), 0.2 )
-player.animations.move["up"] = anim8.newAnimation( player.six_grid("1-6", 2), 0.2 )
-player.animations.move["left"] = anim8.newAnimation( player.six_grid("1-6", 3), 0.2 )
-player.animations.move["right"] = anim8.newAnimation( player.six_grid("1-6", 4), 0.2 )
+player.animations.move[Directions.DOWN] = anim8.newAnimation( player.six_grid("1-6", 1), 0.2 )
+player.animations.move[Directions.UP] = anim8.newAnimation( player.six_grid("1-6", 2), 0.2 )
+player.animations.move[Directions.LEFT] = anim8.newAnimation( player.six_grid("1-6", 3), 0.2 )
+player.animations.move[Directions.RIGHT] = anim8.newAnimation( player.six_grid("1-6", 4), 0.2 )
 
 player.animations.idle = {}
-player.animations.idle["down"] = anim8.newAnimation( player.four_grid("1-4", 1), 0.2 )
-player.animations.idle["up"] = anim8.newAnimation( player.four_grid("1-4", 2), 0.2 )
-player.animations.idle["left"] = anim8.newAnimation( player.four_grid("1-4", 3), 0.2 )
-player.animations.idle["right"] = anim8.newAnimation( player.four_grid("1-4", 4), 0.2 )
+player.animations.idle[Directions.DOWN] = anim8.newAnimation( player.four_grid("1-4", 1), 0.2 )
+player.animations.idle[Directions.UP] = anim8.newAnimation( player.four_grid("1-4", 2), 0.2 )
+player.animations.idle[Directions.LEFT] = anim8.newAnimation( player.four_grid("1-4", 3), 0.2 )
+player.animations.idle[Directions.RIGHT] = anim8.newAnimation( player.four_grid("1-4", 4), 0.2 )
 
-player.anim = player.animations.idle["down"]
+player.anim = player.animations.idle[Directions.DOWN]
 
 function player.updateCollider()
     player.colliderV:setLinearVelocity(player.vx, player.vy)
@@ -56,7 +59,7 @@ function player.updateCollider()
     player.colliderV:setPosition(player.collider:getPosition())
     player.colliderH:setPosition(player.collider:getPosition())
 
-    if player.direction == "up" or player.direction == "down" then
+    if player.direction == Directions.UP or player.direction == Directions.DOWN then
         player.colliderV:setSensor(false)
         player.colliderH:setSensor(true)
 
@@ -70,15 +73,15 @@ function player.updateCollider()
 end
 
 function player.handleStamina()
-    if player.state == "idle" then
+    if player.state == States.IDLE then
         if(player.stamina < player.max_stamina) then
             player.stamina = player.stamina + 4
         end
-    elseif player.state == "running" and player.stamina > 0 then
+    elseif player.state == States.RUNNING and player.stamina > 0 then
         player.stamina = player.stamina - 2
     elseif player.stamina >= player.stamina_run_threshold and player.stamina < player.max_stamina then
         player.stamina = player.stamina + 2
-    elseif player.stamina < player.stamina_run_threshold and player.stamina > 0.25 and player.stamina < player.max_stamina then
+    elseif player.stamina < player.stamina_run_threshold and player.stamina < player.max_stamina then
         player.stamina = player.stamina + 0.25
     end
 
@@ -96,7 +99,7 @@ function player.setState(state)
     player.sheet = player.sheets[state]
     player.state = state
 
-    if state == "idle" then
+    if state == States.IDLE then
         player.anim = player.animations.idle[player.direction]
     end
 end
@@ -104,19 +107,19 @@ end
 function player.moveInDirection(direction)
     local moveIn = direction
 
-    if direction == "right" then
+    if direction == Directions.RIGHT then
         player.vx = player.speed * 100
-        if player.state == "running" then
-            moveIn = "left"
+        if player.state == States.RUNNING then
+            moveIn = Directions.LEFT
         end
-    elseif direction == "left" then
+    elseif direction == Directions.LEFT then
         player.vx = player.speed * -100
-        if player.state == "running" then
-            moveIn = "right"
+        if player.state == States.RUNNING then
+            moveIn = Directions.RIGHT
         end
-    elseif direction == "up" then
+    elseif direction == Directions.UP then
         player.vy = player.speed * -100
-    elseif direction == "down" then
+    elseif direction == Directions.DOWN then
         player.vy = player.speed * 100
     end
     
@@ -128,32 +131,36 @@ function player.handleMovement()
     player.vx = 0
     player.vy = 0
 
-    player.setState("walking")
-
-    if (love.keyboard.isDown("rshift") or love.keyboard.isDown("lshift")) and player.stamina > 0 then
-        player.setState("running")
+    if (love.keyboard.isDown("rshift") or love.keyboard.isDown("lshift")) 
+    and 
+    ((player.state == States.RUNNING and player.stamina > 0)
+    or 
+    (player.state == States.WALKING and player.stamina > player.stamina_run_threshold)) then
+        player.setState(States.RUNNING)
+    else
+        player.setState(States.WALKING)
     end
 
     if love.keyboard.isDown("d") then
-        player.moveInDirection("right")
+        player.moveInDirection(Directions.RIGHT)
     end
 
     if love.keyboard.isDown("a") then
-        player.moveInDirection("left")
+        player.moveInDirection(Directions.LEFT)
     end
 
     if love.keyboard.isDown("s") then
-        player.moveInDirection("down")
+        player.moveInDirection(Directions.DOWN)
     end
 
     if love.keyboard.isDown("w") then
-        player.moveInDirection("up")
+        player.moveInDirection(Directions.UP)
     end
 
     player:updateCollider()
 
     if player.vx == 0 and player.vy == 0 then
-        player.setState("idle")
+        player.setState(States.IDLE)
     end
 end
 
