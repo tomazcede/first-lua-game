@@ -8,29 +8,31 @@ love.graphics.setDefaultFilter("nearest", "nearest")
 
 player.max_stamina = 300
 player.max_hp = 300
-player.walk_speed = 3
-player.run_speed = 6
+player.speeds = {}
+player.speeds["running"] = 6
+player.speeds["walking"] = 3
+player.speeds["idle"] = 3
 player.vx = 0
 player.vy = 0
 
 player.state = "idle"
 player.direction = "down"
 player.lastDirection = "down"
-player.sheet = player.idle_sheet
-player.speed = player.walk_speed
+player.speed = player.speeds["idle"]
 
 player.stamina = player.max_stamina
 player.stamina_run_threshold = (player.max_stamina * 2) / 7
 player.hp = player.max_hp
 
-player.walk_sheet = love.graphics.newImage("objects/player/sprites/Fox/Fox_walk.png")
-player.idle_sheet = love.graphics.newImage("objects/player/sprites/Fox/Fox_Idle.png")
-player.run_sheet = love.graphics.newImage("objects/player/sprites/Fox/Fox_Run.png")
-player.shadow_sheet = love.graphics.newImage("objects/player/sprites/Fox/Fox_Shadow.png")
+player.sheets = {}
+player.sheets["running"] = love.graphics.newImage("objects/player/sprites/Fox/Fox_Run.png")
+player.sheets["walking"] = love.graphics.newImage("objects/player/sprites/Fox/Fox_walk.png")
+player.sheets["idle"] = love.graphics.newImage("objects/player/sprites/Fox/Fox_Idle.png")
 
-player.six_grid = anim8.newGrid(32, 32, player.walk_sheet:getWidth(), player.walk_sheet:getHeight() )
-player.four_grid = anim8.newGrid(32, 32, player.idle_sheet:getWidth(), player.idle_sheet:getHeight() )
-player.shadow_grid = anim8.newGrid(32, 16, player.idle_sheet:getWidth(), player.idle_sheet:getHeight() )
+player.sheet = player.sheets["idle"]
+
+player.six_grid = anim8.newGrid(32, 32, player.sheets["walking"]:getWidth(), player.sheets["walking"]:getHeight() )
+player.four_grid = anim8.newGrid(32, 32, player.sheets["idle"]:getWidth(), player.sheets["idle"]:getHeight() )
 
 player.animations = {}
 player.animations.move = {}
@@ -76,7 +78,7 @@ function player.handleStamina()
         player.stamina = player.stamina - 2
     elseif player.stamina >= player.stamina_run_threshold and player.stamina < player.max_stamina then
         player.stamina = player.stamina + 2
-    elseif player.stamina < player.stamina_run_threshold and player.stamina < player.max_stamina then
+    elseif player.stamina < player.stamina_run_threshold and player.stamina > 0.25 and player.stamina < player.max_stamina then
         player.stamina = player.stamina + 0.25
     end
 
@@ -89,23 +91,14 @@ function player.handleStamina()
     end
 end
 
-function player.setRunning()
-    player.speed = player.run_speed
-    player.sheet = player.run_sheet
-    player.state = "running"
-end
+function player.setState(state)
+    player.speed = player.speeds[state]
+    player.sheet = player.sheets[state]
+    player.state = state
 
-function player.setWalking()
-    player.speed = player.walk_speed
-    player.sheet = player.walk_sheet
-    player.state = "walking"
-end
-
-function player.setIdle()
-    player.state = "idle"
-    player.sheet = player.idle_sheet
-
-    player.anim = player.animations.idle[player.direction]
+    if state == "idle" then
+        player.anim = player.animations.idle[player.direction]
+    end
 end
 
 function player.moveInDirection(direction)
@@ -135,10 +128,10 @@ function player.handleMovement()
     player.vx = 0
     player.vy = 0
 
+    player.setState("walking")
+
     if (love.keyboard.isDown("rshift") or love.keyboard.isDown("lshift")) and player.stamina > 0 then
-        player:setRunning()
-    else
-        player:setWalking()
+        player.setState("running")
     end
 
     if love.keyboard.isDown("d") then
@@ -160,7 +153,7 @@ function player.handleMovement()
     player:updateCollider()
 
     if player.vx == 0 and player.vy == 0 then
-        player.setIdle()
+        player.setState("idle")
     end
 end
 
