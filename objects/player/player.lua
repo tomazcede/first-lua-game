@@ -14,7 +14,7 @@ player.max_hp = 300
 player.speeds = {}
 player.speeds[States.RUNNING] = 6
 player.speeds[States.WALKING] = 3
-player.speeds[States.IDLE] = 3
+player.speeds[States.IDLE] = 0
 player.vx = 0
 player.vy = 0
 

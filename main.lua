@@ -25,6 +25,8 @@ function love.load()
             table.insert(walls, wall)
         end
     end
+
+    love.window.setMode(1920, 1080)
 end
 
 function love.update(dt)
