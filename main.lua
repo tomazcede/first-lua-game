@@ -5,29 +5,49 @@ if arg[2] == "debug" then
 end
 
 function drawUi()
-    -- top bar
+    local maxValue = player.max_hp
+    if player.max_stamina > maxValue then
+        maxValue = player.max_stamina
+    end
+
     love.graphics.setColor(40/255, 40/255, 40/255)
-    love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), 50)
+    love.graphics.rectangle("fill", 0, 0, maxValue + 50, 70)
 
-    -- hp bar
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.print("HP:", 5, 5)
-    love.graphics.setColor(80/255, 30/255, 30/255)
-    love.graphics.rectangle("fill", 30, 2.5, player.max_hp + 10, 20)
-    love.graphics.setColor(220/255, 60/255, 60/255)
-    love.graphics.rectangle("fill", 35, 7.5, player.hp, 10)
+    drawValueBar("HP:", player.max_hp, player.hp, 7.5, {
+        r = 80 / 255,
+        g = 30 / 255,
+        b = 30 / 255
+    }, {
+        r = 220 / 255,
+        g = 60 / 255,
+        b = 60 / 255
+    }, false)
 
-    -- stamina bar
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.print("ST:", 5, 30)
-    love.graphics.setColor(25/255, 100/255, 60/255)
-    love.graphics.rectangle("fill", 30, 27.5, player.max_stamina + 10, 20)
-    love.graphics.setColor(80/255, 220/255, 120/255)
-    love.graphics.rectangle("fill", 35, 32.5, player.stamina, 10)
-    love.graphics.setColor(20/255, 20/255, 20/255)
-    love.graphics.line(player.stamina_run_threshold + 35, 32.5, player.stamina_run_threshold + 35, 42.5)
+    drawValueBar("ST:", player.max_stamina, player.stamina, 40, {
+        r = 25 / 255,
+        g = 100 / 255,
+        b = 60 / 255
+    }, {
+        r = 80 / 255,
+        g = 220 / 255,
+        b = 120 / 255
+    }, player.stamina_run_threshold)
 
     love.graphics.setColor(1, 1, 1)
+end
+
+function drawValueBar(label, maxValue, value, x, bgColor, color, line)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print(label, 5, x)
+    love.graphics.setColor(bgColor.r, bgColor.g, bgColor.b)
+    love.graphics.rectangle("fill", 30, x - 2.5, maxValue + 10, 20)
+    love.graphics.setColor(color.r, color.g, color.b)
+    love.graphics.rectangle("fill", 35, x + 2.5, value, 10)
+
+    if line then
+        love.graphics.setColor(20/255, 20/255, 20/255)
+        love.graphics.line(line + 35, x + 2.5, line + 35, x + 12.5)
+    end
 end
 
 function handleCamera()
